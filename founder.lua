@@ -1,8 +1,7 @@
--- 🚀 TSUNAMI GODMODE + VIP WALLS REMOVER 🚀
--- 📱 Работает на Delta Executor (Mobile/PC) 📱
--- ✅ 100% Античит Bypass ✅
--- 👑 От канала Founder Scripts 👑
--- Telegram: t.me/FounderScripts
+-- 🌊 ULTIMATE TSUNAMI SCRIPT 🌊
+-- 📱 Delta Executor (Mobile/PC) ✅
+-- 👑 Founder Scripts 👑
+-- 📱 t.me/FounderScripts
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -10,11 +9,12 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local PathfindingService = game:GetService("PathfindingService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- 🛡️ Античит Bypass System 🛡️
+-- 🛡️ Anti-Cheat Bypass 🛡️
 local mt = getrawmetatable(game)
 local oldNamecall = mt.__namecall
 setreadonly(mt, false)
@@ -23,48 +23,49 @@ mt.__namecall = newcclosure(function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
     
-    -- Block damage calls
-    if method == "FireServer" and (self.Name:find("Damage") or self.Name:find("Tsunami") or self.Name:find("Hurt")) then
-        return
+    if method == "FireServer" then
+        local name = self.Name:lower()
+        if name:find("damage") or name:find("hurt") or name:find("kill") then
+            return
+        end
     end
     
     return oldNamecall(self, ...)
 end)
-
 setreadonly(mt, true)
 
--- 🌊 Tsunami Godmode (Полный иммунитет) 🌊
-local function createGodmode()
-    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
+-- 🎮 Variables 🎮
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootpart = character:WaitForChild("HumanoidRootPart")
+
+local guiVisible = false
+local features = {
+    survivalMode = false,
+    vipWalls = false,
+    autoBrainrot = false,
+    autoTwin = false,
+    autoCoins = false,
+    autoSpeed = false
+}
+
+-- 🌊 Survival Mode (Выживает 1-2 волны минимум) 🌊
+local function survivalMode()
+    humanoid.MaxHealth = 500
+    humanoid.Health = 500
     
-    -- Максимальный хп
-    humanoid.MaxHealth = math.huge
-    humanoid.Health = math.huge
-    
-    -- Полный иммунитет ко всем эффектам
-    humanoid:SetAttribute("Godmode", true)
-    
-    -- Hook на все damage events
-    local function onDamage()
-        humanoid.Health = math.huge
-    end
-    
-    humanoid.HealthChanged:Connect(onDamage)
-    
-    -- Tsunami specific bypass
     spawn(function()
-        while character.Parent do
+        while features.survivalMode and character.Parent do
             wait(0.1)
-            -- Удаляем все tsunami effects
-            for _, obj in pairs(Workspace:GetDescendants()) do
+            if humanoid.Health < 100 then
+                humanoid.Health = 500
+            end
+            
+            -- Удаляем tsunami damage
+            for _, obj in pairs(Workspace:GetChildren()) do
                 if obj.Name:lower():find("tsunami") or obj.Name:lower():find("wave") then
                     if obj:IsA("BasePart") then
                         obj.CanCollide = false
-                        obj.Anchored = true
-                        obj.Transparency = 1
-                    elseif obj:IsA("Explosion") then
-                        obj:Destroy()
                     end
                 end
             end
@@ -75,8 +76,8 @@ end
 -- 🧱 VIP Walls Remover 🧱
 local function removeVIPWalls()
     spawn(function()
-        while true do
-            wait(0.5)
+        while features.vipWalls do
+            wait(0.3)
             for _, obj in pairs(Workspace:GetDescendants()) do
                 if obj.Name:lower():find("vip") or obj.Name:lower():find("wall") or obj.Name:lower():find("barrier") then
                     if obj:IsA("BasePart") then
@@ -89,186 +90,264 @@ local function removeVIPWalls()
     end)
 end
 
--- 🎮 GUI System 🎮
+-- 🧠 Auto Brainrot 🧠
+local function autoBrainrot()
+    spawn(function()
+        while features.autoBrainrot do
+            wait(1)
+            -- Ищем brainrot
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                if obj.Name:lower():find("brainrot") or obj.Name == "Brainrot" then
+                    if obj:IsA("BasePart") and obj.Parent then
+                        humanoid:MoveTo(obj.Position)
+                        wait(0.5)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- 🏃‍♂️ Auto Twin to End 🏃‍♂️
+local spawnPoint = Vector3.new(0, 50, 0) -- Конец карты
+local isTsunamiActive = false
+
+local function checkTsunami()
+    for _, obj in pairs(Workspace:GetChildren()) do
+        if obj.Name:lower():find("tsunami") and obj:IsA("BasePart") then
+            local dist = (obj.Position - rootpart.Position).Magnitude
+            if dist < 200 then
+                isTsunamiActive = true
+            else
+                isTsunamiActive = false
+            end
+            break
+        end
+    end
+end)
+
+local function autoTwin()
+    spawn(function()
+        while features.autoTwin do
+            wait(0.5)
+            checkTsunami()
+            
+            if not isTsunamiActive then
+                humanoid:MoveTo(spawnPoint)
+            end
+        end
+    end)
+end
+
+-- 💰 Auto Collect Coins 💰
+local function autoCoins()
+    spawn(function()
+        while features.autoCoins do
+            wait(0.2)
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                if obj.Name:lower():find("coin") or obj.Name:lower():find("money") then
+                    if obj:IsA("BasePart") and obj.Parent then
+                        humanoid:MoveTo(obj.Position)
+                        firetouchinterest(rootpart, obj, 0)
+                        firetouchinterest(rootpart, obj, 1)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- ⚡ Auto Speed Upgrade ⚡
+local function autoSpeed()
+    spawn(function()
+        while features.autoSpeed do
+            wait(2)
+            -- Авто покупка speed (имитация кликов по кнопкам)
+            local speedGui = PlayerGui:FindFirstChild("SpeedGui") or PlayerGui:FindFirstChild("Shop")
+            if speedGui then
+                for _, btn in pairs(speedGui:GetDescendants()) do
+                    if btn:IsA("TextButton") and btn.Text:find("Speed") then
+                        firesignal(btn.MouseButton1Click)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- 🎨 BEAUTIFUL GUI 🎨
 local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local GodmodeBtn = Instance.new("TextButton")
-local VIPWallsBtn = Instance.new("TextButton")
-local ToggleBtn = Instance.new("TextButton")
-local CloseBtn = Instance.new("TextButton")
-local CreditLabel = Instance.new("TextLabel")
-
--- Переменные
-local guiVisible = false
-local godmodeActive = false
-local vipWallsActive = false
-
--- GUI Setup
-ScreenGui.Name = "TsunamiGodmodeGUI"
+ScreenGui.Name = "TsunamiUltimateGUI"
 ScreenGui.Parent = PlayerGui
 ScreenGui.ResetOnSpawn = false
 
 -- Main Frame
+local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
-MainFrame.Size = UDim2.new(0, 350, 0, 250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 400, 0, 400)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Corner Radius
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MainFrame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 255, 255)
+MainStroke.Thickness = 2
+MainStroke.Parent = MainFrame
+
+-- Gradient
+local Gradient = Instance.new("UIGradient")
+Gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
+}
+Gradient.Rotation = 45
+Gradient.Parent = MainFrame
 
 -- Title
+local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 0, 0, 10)
-Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Position = UDim2.new(0, 0, 0, 20)
+Title.Size = UDim2.new(1, 0, 0, 50)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "🌊 TSUNAMI GODMODE 🌊"
-Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.Text = "🌊 TSUNAMI ULTIMATE 🌊"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
+Title.TextStrokeTransparency = 0.5
 
--- Godmode Button
-GodmodeBtn.Name = "GodmodeBtn"
-GodmodeBtn.Parent = MainFrame
-GodmodeBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-GodmodeBtn.Position = UDim2.new(0.1, 0, 0.3, 0)
-GodmodeBtn.Size = UDim2.new(0.8, 0, 0, 45)
-GodmodeBtn.Font = Enum.Font.GothamBold
-GodmodeBtn.Text = "🛡️ GODMODE: OFF"
-GodmodeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-GodmodeBtn.TextScaled = true
+-- Toggle Buttons Frame
+local ButtonsFrame = Instance.new("Frame")
+ButtonsFrame.Name = "ButtonsFrame"
+ButtonsFrame.Parent = MainFrame
+ButtonsFrame.BackgroundTransparency = 1
+ButtonsFrame.Position = UDim2.new(0.05, 0, 0.18, 0)
+ButtonsFrame.Size = UDim2.new(0.9, 0, 0.7, 0)
 
-local GodCorner = Instance.new("UICorner")
-GodCorner.CornerRadius = UDim.new(0, 8)
-GodCorner.Parent = GodmodeBtn
+-- Scroll Frame
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Parent = ButtonsFrame
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.Position = UDim2.new(0, 0, 0, 0)
+ScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollFrame.ScrollBarThickness = 6
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 255)
 
--- VIP Walls Button
-VIPWallsBtn.Name = "VIPWallsBtn"
-VIPWallsBtn.Parent = MainFrame
-VIPWallsBtn.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-VIPWallsBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
-VIPWallsBtn.Size = UDim2.new(0.8, 0, 0, 45)
-VIPWallsBtn.Font = Enum.Font.GothamBold
-VIPWallsBtn.Text = "🧱 VIP WALLS: OFF"
-VIPWallsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-VIPWallsBtn.TextScaled = true
-
-local VIPCorner = Instance.new("UICorner")
-VIPCorner.CornerRadius = UDim.new(0, 8)
-VIPCorner.Parent = VIPWallsBtn
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Parent = ScrollFrame
+ListLayout.Padding = UDim.new(0, 8)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Credits
-CreditLabel.Name = "CreditLabel"
+local CreditLabel = Instance.new("TextLabel")
 CreditLabel.Parent = MainFrame
 CreditLabel.BackgroundTransparency = 1
-CreditLabel.Position = UDim2.new(0, 0, 0.85, 0)
-CreditLabel.Size = UDim2.new(1, 0, 0.15, 0)
+CreditLabel.Position = UDim2.new(0, 0, 0.92, 0)
+CreditLabel.Size = UDim2.new(1, 0, 0.08, 0)
 CreditLabel.Font = Enum.Font.Gotham
-CreditLabel.Text = "👑 Founder Scripts 👑\n📱 t.me/FounderScripts"
-CreditLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+CreditLabel.Text = "👑 Founder Scripts | t.me/FounderScripts 👑"
+CreditLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
 CreditLabel.TextScaled = true
-CreditLabel.TextWrapped = true
 
--- Toggle Button (Floating)
+-- Toggle Button
+local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
 ToggleBtn.Parent = ScreenGui
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
 ToggleBtn.Position = UDim2.new(0, 20, 0, 20)
-ToggleBtn.Size = UDim2.new(0, 120, 0, 50)
+ToggleBtn.Size = UDim2.new(0, 140, 0, 60)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.Text = "📱 ОТКРЫТЬ"
-ToggleBtn.TextColor3 = Color3.fromRGB(25, 25, 35)
+ToggleBtn.Text = "🌊 ОТКРЫТЬ МЕНЮ"
+ToggleBtn.TextColor3 = Color3.fromRGB(15, 15, 25)
 ToggleBtn.TextScaled = true
 
 local ToggleCorner = Instance.new("UICorner")
 ToggleCorner.CornerRadius = UDim.new(0, 12)
 ToggleCorner.Parent = ToggleBtn
 
--- Close Button
-CloseBtn.Name = "CloseBtn"
-CloseBtn.Parent = MainFrame
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-CloseBtn.Position = UDim2.new(0.85, 0, 0, 10)
-CloseBtn.Size = UDim2.new(0, 35, 0, 35)
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextScaled = true
+-- Feature Buttons
+local buttons = {
+    {name = "🛡️ Survival Mode", func = function() features.survivalMode = not features.survivalMode; survivalMode() end},
+    {name = "🧱 VIP Walls Remove", func = function() features.vipWalls = not features.vipWalls; removeVIPWalls() end},
+    {name = "🧠 Auto Brainrot", func = function() features.autoBrainrot = not features.autoBrainrot; autoBrainrot() end},
+    {name = "🏃‍♂️ Auto Twin End", func = function() features.autoTwin = not features.autoTwin; autoTwin() end},
+    {name = "💰 Auto Coins", func = function() features.autoCoins = not features.autoCoins; autoCoins() end},
+    {name = "⚡ Auto Speed", func = function() features.autoSpeed = not features.autoSpeed; autoSpeed() end}
+}
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 8)
-CloseCorner.Parent = CloseBtn
+for i, btnData in pairs(buttons) do
+    local Button = Instance.new("TextButton")
+    Button.Name = btnData.name
+    Button.Parent = ScrollFrame
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    Button.Size = UDim2.new(1, -10, 0, 50)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = btnData.name .. ": OFF"
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextScaled = true
+    Button.LayoutOrder = i
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 10)
+    BtnCorner.Parent = Button
+    
+    local BtnStroke = Instance.new("UIStroke")
+    BtnStroke.Color = Color3.fromRGB(0, 255, 255)
+    BtnStroke.Thickness = 1
+    BtnStroke.Parent = Button
+    
+    Button.MouseButton1Click:Connect(function()
+        btnData.func()
+        Button.Text = btnData.name .. (features[btnData.name:lower():gsub(" ", ""):gsub("%W", ""):lower()] and ": ON" or ": OFF")
+        Button.BackgroundColor3 = features[btnData.name:lower():gsub(" ", ""):gsub("%W", ""):lower()] and 
+            Color3.fromRGB(0, 200, 0) or Color3.fromRGB(40, 40, 60)
+    end)
+end
 
--- 🎯 Functions 🎯
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 20)
+
+ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 20)
+end)
+
+-- Toggle GUI
 local function toggleGUI()
     guiVisible = not guiVisible
     MainFrame.Visible = guiVisible
-    ToggleBtn.Text = guiVisible and "📱 ЗАКРЫТЬ" or "📱 ОТКРЫТЬ"
+    ToggleBtn.Text = guiVisible and "📴 ЗАКРЫТЬ" or "🌊 ОТКРЫТЬ МЕНЮ"
 end
 
-local function toggleGodmode()
-    godmodeActive = not godmodeActive
-    GodmodeBtn.Text = godmodeActive and "🛡️ GODMODE: ON" or "🛡️ GODMODE: OFF"
-    GodmodeBtn.BackgroundColor3 = godmodeActive and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(0, 170, 0)
-    
-    if godmodeActive then
-        createGodmode()
-    end
-end
-
-local function toggleVIPWalls()
-    vipWallsActive = not vipWallsActive
-    VIPWallsBtn.Text = vipWallsActive and "🧱 VIP WALLS: ON" or "🧱 VIP WALLS: OFF"
-    VIPWallsBtn.BackgroundColor3 = vipWallsActive and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(255, 165, 0)
-    
-    if vipWallsActive then
-        removeVIPWalls()
-    end
-end
-
--- 🔗 Connections 🔗
 ToggleBtn.MouseButton1Click:Connect(toggleGUI)
-CloseBtn.MouseButton1Click:Connect(function()
-    guiVisible = false
-    MainFrame.Visible = false
-    ToggleBtn.Text = "📱 ОТКРЫТЬ"
-end)
 
-GodmodeBtn.MouseButton1Click:Connect(toggleGodmode)
-VIPWallsBtn.MouseButton1Click:Connect(toggleVIPWalls)
-
--- 📱 Mobile Support 📱
+-- Hotkey
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.Insert then
         toggleGUI()
     end
 end)
 
--- Auto-execute on spawn
-LocalPlayer.CharacterAdded:Connect(function()
-    if godmodeActive then
-        wait(1)
-        createGodmode()
+-- Auto respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    character = char
+    humanoid = char:WaitForChild("Humanoid")
+    rootpart = char:WaitForChild("HumanoidRootPart")
+    if features.survivalMode then
+        survivalMode()
     end
 end)
 
--- Initial load
-createGodmode()
-print("✅ Tsunami Godmode загружен! От Founder Scripts")
-print("📱 Используй кнопку или INSERT для открытия")
-
--- 🌟 Anti-Detection 🌟
+-- Notification
 game:GetService("CoreGui"):SetCore("SendNotification", {
-    Title = "Founder Scripts";
-    Text = "🌊 Tsunami Godmode активирован!";
-    Duration = 3;
+    Title = "🌊 Founder Scripts";
+    Text = "Tsunami Ultimate загружен! Нажми кнопку или INSERT";
+    Duration = 5;
 })
+
+print("✅ Tsunami Ultimate от Founder Scripts загружен!")
